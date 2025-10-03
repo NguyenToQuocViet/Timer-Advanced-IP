@@ -1,0 +1,257 @@
+m255
+K4
+z2
+Z0 !s12c _opt
+Z1 !s99 nomlopt
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+!s11f vlog 2023.3 2023.07, Jul 17 2023
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z2 d/ictc/student_data/quocviet/timer_advanced/sim
+T_opt
+!s110 1756829136
+V9<819<63@=]9=BDCImH]o3
+04 10 4 work test_bench fast 0
+=1-bc2411209e67-68b715d0-226a6-37558
+R1
+!s12b OEM100
+!s124 OEM10U9 
+o-quiet -auto_acc_if_foreign -work work -debugdb +access
+Z3 tCvgOpt 0
+n@_opt
+OL;O;2023.3;77
+vapb_slave
+Z4 2../rtl/register_file.v|../rtl/interrupt_control.v|../rtl/counter_control.v|../rtl/counter.v|../rtl/halt_gen.v|../rtl/apb_slave.v|../rtl/timer_ip.v|../tb/test_bench.v
+Z5 !s110 1756829135
+!i10b 1
+!s100 XnYWV5?zO9m@i[<^;AnCo2
+IgbI5477fm483o`aW^3MdU2
+R2
+w1756818897
+8../rtl/apb_slave.v
+F../rtl/apb_slave.v
+!i122 12
+Z6 L0 1 116
+Z7 VDg1SIo80bB@j0V0VzS_@n1
+Z8 OL;L;2023.3;77
+r1
+!s85 0
+31
+Z9 !s108 1756829135.000000
+Z10 !s107 run_test.v|../tb/test_bench.v|../rtl/timer_ip.v|../rtl/apb_slave.v|../rtl/halt_gen.v|../rtl/counter.v|../rtl/counter_control.v|../rtl/interrupt_control.v|../rtl/register_file.v|
+Z11 !s90 -f|compile.f|
+!i113 0
+Z12 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R3
+vcounter
+R4
+R5
+!i10b 1
+!s100 joa4O`aG<0oO3L6_=IKbA0
+Iz3X?iVeAQF`4l:g3U_cTZ2
+R2
+w1756731622
+8../rtl/counter.v
+F../rtl/counter.v
+!i122 12
+L0 1 37
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vcounter_control
+R4
+R5
+!i10b 1
+!s100 6OMBNTJGiGf:jmia@;HM^0
+I>D6jCj6m0CRN_m^z9Wke]2
+R2
+w1756732349
+8../rtl/counter_control.v
+F../rtl/counter_control.v
+!i122 12
+R6
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vhalt_gen
+R4
+R5
+!i10b 1
+!s100 U@7P=A9?6bM]JbAA>AdQ^3
+IWPD=ziLZ]FUfLgldZz4Io3
+R2
+w1756731721
+8../rtl/halt_gen.v
+F../rtl/halt_gen.v
+!i122 12
+L0 1 19
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vinterrupt_control
+R4
+R5
+!i10b 1
+!s100 DAYLk33F=XGkc6;@OehkO3
+IO?@1Vz<=PVV:Ze;<[HkSQ0
+R2
+w1756731712
+8../rtl/interrupt_control.v
+F../rtl/interrupt_control.v
+!i122 12
+L0 1 32
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vmod_golden_cnt
+R4
+R5
+!i10b 1
+!s100 9LCi88EXIW>oo[3V>@BI82
+I>1OIRGQL=GKAKAR^@P=ma3
+R2
+w1756440709
+Z13 8../tb/test_bench.v
+Z14 F../tb/test_bench.v
+!i122 12
+L0 423 65
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vregister_file
+R4
+R5
+!i10b 1
+!s100 cd6W[MVjV6M5ZXU`Da2j>2
+IcGY5hmgVkl9n2ndhiCTQM0
+R2
+w1756829081
+8../rtl/register_file.v
+F../rtl/register_file.v
+!i122 12
+L0 1 259
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vtest_bench
+R4
+R5
+!i10b 1
+!s100 W2LeHeAVMH?lXbW1J;WMH2
+IlK5]8^AajoGAU^S]`?97I2
+R2
+w1756829135
+R13
+R14
+Frun_test.v
+!i122 12
+L0 1 510
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3
+vtimer_top
+R4
+R5
+!i10b 1
+!s100 aK[P;OdkAEG=F`VYmDN<>3
+INa3hT4Q=W=Nd1>5;YC:J[0
+R2
+w1756643308
+8../rtl/timer_ip.v
+F../rtl/timer_ip.v
+!i122 12
+L0 1 138
+R7
+R8
+r1
+!s85 0
+31
+R9
+R10
+R11
+!i113 0
+R12
+R3

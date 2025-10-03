@@ -1,0 +1,259 @@
+module register_file (sys_clk, sys_rst_n, addr, wdata, strb, wr_en, rd_en, rdata, div_val, div_en, timer_en, error_res, TDR, TCMP, int_en, int_st, int_clr, halt_req, halt_ack, cnt, load_back, cnt_clr, TDR_wr, tdr_wr_en);
+	//system
+	input wire sys_clk, sys_rst_n;
+	
+	//giao tiep voi APB
+	input wire wr_en, rd_en;		//tin hieu doc / ghi vao register
+	input wire [3:0] strb;
+	input wire [11:0] addr;			
+	input wire [31:0] wdata;
+	output wire[31:0] rdata;		
+	output wire error_res;			//tra ve loi -> tim_pslverr (truy cap vung nho ko hop le)
+
+
+	//giao tiep voi Interrupt Control
+	input wire int_st;				//ket qua interrupt nhan vao
+	output wire int_en;				//bat mode interrupt
+	output reg int_clr;				//reset interrupt (write 1 vao tisr)
+	output wire [63:0] TDR, TCMP;	//gia tri 2 thanh ghi cua counter va interrupt
+
+	
+	//giao tiep voi Counter
+	input wire [63:0] cnt;			//gia tri bo dem counter (drive vao TDR)
+	input wire load_back;
+	output reg cnt_clr;				//reset counter (timer_en chuyen tu H -> L)
+	output reg tdr_wr_en;			//bao voi counter nhan gia tri moi tu TDR
+	output reg [63:0] TDR_wr;			
+
+	//giao tiep voi Counter Control
+	output wire [3:0] div_val;
+	output wire div_en, timer_en;
+	
+
+	//giao toi voi Halt Gen
+	output wire  halt_req;
+	input wire halt_ack;			//ket qua hatl nhan vao
+			
+
+	//address
+	parameter ADDR_TCR 		= 12'h00;	//Timer Control Register
+	parameter ADDR_TDR0 	= 12'h04;	//Timer Data Register
+	parameter ADDR_TDR1 	= 12'h08;
+	parameter ADDR_TCMP0	= 12'h0C;	//Timer Compare Register
+	parameter ADDR_TCMP1	= 12'h10;
+	parameter ADDR_TIER		= 12'h14;	//Timer Interrupt Enable Register
+	parameter ADDR_TISR		= 12'h18;	//Timer Interrupt Status Register
+	parameter ADDR_THCSR	= 12'h1C;	//Timer Halt Control Status Register
+	
+
+	//register
+	reg [31:0] TCR, TDR0, TDR1, TCMP0, TCMP1, TIER, TISR, THCSR;
+
+
+	//mask
+	wire [31:0] mask 	= { {8{strb[3]}}, {8{strb[2]}}, {8{strb[1]}}, {8{strb[0]}}};
+	wire [31:0] TDR0_n 	= (TDR0 & ~mask) | (wdata & mask);
+	wire [31:0] TDR1_n 	= (TDR1 & ~mask) | (wdata & mask);
+
+
+	//error_res
+	wire addr_is_TCR = (addr == ADDR_TCR);
+	wire b0 = strb[0];
+	wire b1 = strb[1];
+
+	wire change_div_en 	= wr_en && addr_is_TCR && b0 && (wdata[1] != TCR[1]);
+	wire change_div_val	= wr_en && addr_is_TCR && b1 && (wdata[11:8] != TCR[11:8]);
+
+	wire err_illegal_div_val = wr_en && addr_is_TCR && b1 && (wdata[11:8] > 4'd8);
+	wire err_change_when_run = TCR[0] && (change_div_en || change_div_val);
+
+
+	//logic
+	always @(posedge sys_clk or negedge sys_rst_n) begin
+		if (!sys_rst_n) begin	//reset
+			TCR 	<= 32'h0000_0100;
+			TCMP0 	<= 32'hFFFF_FFFF;
+			TCMP1 	<= 32'hFFFF_FFFF;
+			TIER 	<= 32'd0;
+			TISR 	<= 32'd0;
+			THCSR 	<= 32'd0;
+			
+			cnt_clr		<= 1'b0;
+			int_clr		<= 1'b0;
+		end else begin
+			//pulse 1 xung
+			int_clr	<= 1'b0;
+			cnt_clr	<= 1'b0;
+
+			if (wr_en) begin	//write
+				case (addr)
+					ADDR_TCR:
+					begin
+						//reserved 
+						TCR[31:12]	<= 20'd0;
+						TCR[7:2]	<= 6'd0;
+
+						if (!error_res) begin
+							if (b0)	//timer_en
+								TCR[0]		<= wdata[0];
+							if (b0)	//div_en
+								TCR[1]		<= wdata[1];
+							if (b1)	//div_val
+								TCR[11:8]	<= wdata[11:8];
+						end
+
+						//neu timer_en chuyen tu H -> L, reset TDR
+						if (b0 && !error_res && (TCR[0] == 1'b1) && (wdata[0] == 1'b0)) begin
+							cnt_clr	<= 1'b1;
+						end
+					end
+
+					ADDR_TCMP0:
+					begin
+						if (strb[0] == 1'b1) begin
+							TCMP0[7:0]		<= wdata[7:0];
+						end
+
+						if (strb[1] == 1'b1) begin
+							TCMP0[15:8]		<= wdata[15:8];
+						end
+
+						if (strb[2] == 1'b1) begin
+							TCMP0[23:16]	<= wdata[23:16];
+						end
+
+						if (strb[3] == 1'b1) begin
+							TCMP0[31:24]	<= wdata[31:24];
+						end
+
+					end
+
+					ADDR_TCMP1:	
+					begin
+						if (strb[0] == 1'b1) begin
+							TCMP1[7:0]		<= wdata[7:0];
+						end
+
+						if (strb[1] == 1'b1) begin
+							TCMP1[15:8]		<= wdata[15:8];
+						end
+
+						if (strb[2] == 1'b1) begin
+							TCMP1[23:16]	<= wdata[23:16];
+						end
+
+						if (strb[3] == 1'b1) begin
+							TCMP1[31:24]	<= wdata[31:24];
+						end
+					end
+
+					ADDR_TIER:
+					begin
+						TIER[31:1]		<= 31'd0;
+
+						if (strb[0] == 1'b1) begin
+							TIER[0]			<= wdata[0];	//int_en
+						end
+					end
+
+					ADDR_TISR:
+					begin
+						TISR[31:1]		<= 31'd0;
+						
+						//neu int_st dang = 1 -> write 1 de clear
+						//neu int_st dang = 0 -> write khong co tac dung j
+						if (int_st == 1'b1) begin		
+							if (wdata[0] == 1'b1 && strb[0] == 1'b1) begin	//write 1 -> clear
+								int_clr	<= 1'b1;
+							end 
+						end
+					end
+
+					ADDR_THCSR:
+					begin
+						THCSR[31:2]		<= 30'd0;
+					
+						if (strb[0] == 1'b1) begin
+							THCSR[0]	<= wdata[0];	//halt_req
+						end
+					end
+
+					default: begin
+					end 
+				endcase
+			end 
+		end	
+	end
+
+	//TDR <-> COUNTER
+	always @(posedge sys_clk or negedge sys_rst_n) begin
+		if (!sys_rst_n) begin
+			TDR0	<= 32'd0;
+			TDR1	<= 32'd0;
+
+			tdr_wr_en	<= 1'b0;
+			TDR_wr		<= 64'd0;
+		end else begin
+			tdr_wr_en	<= 1'b0;	//mac dinh -> khong phat xung write
+			
+			if (wr_en == 1'b1 && addr == ADDR_TDR0) begin	//neu APB write vao TDR0
+				TDR0		<= TDR0_n;	
+
+				//truyen du lieu sang counter
+				tdr_wr_en	<= 1'b1;
+				TDR_wr		<= {TDR1, TDR0_n};
+			end else if (wr_en == 1'b1 && addr == ADDR_TDR1) begin	//neu APB write vao TDR1
+				TDR1		<= TDR1_n;
+
+				//truyen du lieu sang counter
+				tdr_wr_en	<= 1'b1;
+				TDR_wr		<= {TDR1_n, TDR0};
+			end else if (load_back == 1'b1) begin	//neu APB khong write -> load gia tri tu counter
+				TDR0		<= cnt[31:0];
+				TDR1		<= cnt[63:32];
+			end
+		end
+	end
+	
+	//load int_st tu interrupt_controller
+	always @(posedge sys_clk or negedge sys_rst_n) begin
+		if (!sys_rst_n)
+			TISR[0]		<= 1'b0;
+		else
+			TISR[0]		<= int_st;
+	end	
+	
+	//load halt_ack tu halt_gen
+	always @(posedge sys_clk or negedge sys_rst_n) begin
+		if (!sys_rst_n) 
+			THCSR[1]	<= 1'b0;
+		else
+			THCSR[1]	<= halt_ack;
+	end
+	
+	//read data
+	assign rdata	= 	rd_en? 
+						(addr == ADDR_TCR) 	? TCR 	:
+						(addr == ADDR_TDR0)	? TDR0	:
+						(addr == ADDR_TDR1)	? TDR1	:
+						(addr == ADDR_TCMP0)? TCMP0 :
+						(addr == ADDR_TCMP1)? TCMP1 :
+						(addr == ADDR_TIER)	? TIER	:
+						(addr == ADDR_TISR)	? TISR	:
+						(addr == ADDR_THCSR)? THCSR	: 32'd0
+						:32'd0;
+	
+	//output signals de dieu khien
+	assign error_res=	err_illegal_div_val || err_change_when_run;
+
+	assign timer_en = 	TCR[0];
+	assign div_en 	= 	TCR[1];
+	assign div_val	= 	TCR[11:8];
+	
+	assign TDR		= 	{TDR0, TDR1};
+	assign TCMP		= 	{TCMP0, TCMP1};
+
+	assign int_en 	= 	TIER[0];
+
+	assign halt_req	= 	THCSR[0];
+endmodule

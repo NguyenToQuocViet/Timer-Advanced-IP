@@ -1,0 +1,24 @@
+module interrupt_control (sys_clk, sys_rst_n, TDR, TCMP, int_en, int_st, int_clr, timer_int);
+	input wire sys_clk, sys_rst_n, int_en, int_clr;
+	input wire [63:0] TDR, TCMP;
+
+	output reg int_st;
+	output wire timer_int;
+	
+	//so sanh TDR va TCMP
+	wire cmp_hit = (TDR == TCMP);
+
+	always @(posedge sys_clk or negedge sys_rst_n) begin
+		if (!sys_rst_n || int_clr) begin
+			int_st <= 1'b0;
+		end else if (int_clr) begin
+			int_st <= 1'b0;
+		end else if (cmp_hit) begin
+			int_st <= 1'b1;
+		end else 
+			int_st <= int_st;
+	end
+	
+	//int_en = 1 -> timer_int phan anh int_st / neu 0 -> timer_int = 0
+	assign timer_int = int_en ? int_st : 1'b0;
+endmodule
